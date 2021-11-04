@@ -1,6 +1,7 @@
 import pickle
 import tensorflow as tf
-from scipy.misc import imread
+from matplotlib.pyplot import imread
+from matplotlib.pyplot import imsave
 import numpy as np
 from argparse import ArgumentParser
 import math
@@ -13,8 +14,8 @@ def CalcuPSNR(target, ref):
 
 
 def load_graph(frozen_graph_filename):
-    with tf.gfile.GFile(frozen_graph_filename, "rb") as f:
-        graph_def = tf.GraphDef()
+    with tf.io.gfile.GFile(frozen_graph_filename, "rb") as f:
+        graph_def = tf.compat.v1.GraphDef()
         graph_def.ParseFromString(f.read())
 
     with tf.Graph().as_default() as graph:
@@ -31,7 +32,7 @@ def decoder(loadmodel, refer_path, outputfolder):
     motion_input = graph.get_tensor_by_name('import/quant_mv:0')
     previousImage = graph.get_tensor_by_name('import/input_image_ref:0')
 
-    with tf.Session(graph=graph) as sess:
+    with tf.compat.v1.Session(graph=graph) as sess:
 
         with open(outputfolder + 'quantized_res_feature.pkl', 'rb') as f:
             residual_feature = pickle.load(f)
@@ -56,8 +57,14 @@ def decoder(loadmodel, refer_path, outputfolder):
                 previousImage: im1
             })
 
-        # print(recon_d)
-        
+        recon_d = np.array(recon_d).reshape((im1.shape[1], im1.shape[2], im1.shape[3]))
+        recon_d = (recon_d - recon_d.min()) / (recon_d.max() - recon_d.min())
+        # recon_d *= 255
+        print(recon_d)
+        # print(recon_d.shape)
+        # print(im1.shape)
+        imsave(outputfolder + 'decoded_image.png', recon_d)
+
         # check 
         # imagedir = './image/'
         # im2 = imread(imagedir + 'im003.png')

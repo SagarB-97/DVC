@@ -1,14 +1,14 @@
 import pickle
 import os
 import tensorflow as tf
-from scipy.misc import imread
+from matplotlib.pyplot import imread
 import numpy as np
 from argparse import ArgumentParser
 
 
 def load_graph(frozen_graph_filename):
-    with tf.gfile.GFile(frozen_graph_filename, "rb") as f:
-        graph_def = tf.GraphDef()
+    with tf.io.gfile.GFile(frozen_graph_filename, "rb") as f:
+        graph_def = tf.compat.v1.GraphDef()
         graph_def.ParseFromString(f.read())
 
     with tf.Graph().as_default() as graph:
@@ -30,7 +30,7 @@ def encoder(loadmodel, input_path, refer_path, outputfolder):
     # reconstructed frame
     reconframe = graph.get_tensor_by_name(prefix + 'ReconFrame:0')
 
-    with tf.Session(graph=graph) as sess:
+    with tf.compat.v1.Session(graph=graph) as sess:
 
         im1 = imread(input_path)
         im2 = imread(refer_path)
